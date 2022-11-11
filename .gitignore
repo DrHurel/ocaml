@@ -1,0 +1,8 @@
+*.cmo
+*.mli
+*.cmi
+*.exe
+*.obj
+*.o
+*.a
+/dist
