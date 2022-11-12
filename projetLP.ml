@@ -1,14 +1,3 @@
-(* Tools *)
-
-let max (x, y) = match x with a when a > y -> a | _ -> y
-
-let rec test_unit (name, f, value, result) =
-  match (value, result) with
-  | hd :: [], hd2 :: [] when f hd = hd2 ->
-      print_endline ("[" ^ name ^ "] : OK\n")
-  | hd :: tl, hd2 :: tl2 when f hd = hd2 -> test_unit (name, f, tl, tl2)
-  | _ -> print_endline ("[" ^ name ^ "] : **KO**\n")
-
 (* Type declaration *)
 
 exception Ooc of string
@@ -25,6 +14,20 @@ type prop =
 
 type valVerite = Zero | Un
 type interpretation = (string * valVerite) list
+
+(* Tools *)
+
+let max (x, y) = match x with a when a > y -> a | _ -> y
+
+let rec test_unit (name, f, value, result) =
+  match (value, result) with
+  | hd :: [], hd2 :: [] when f hd = hd2 ->
+      print_endline ("[" ^ name ^ "] : OK\n");
+      None
+  | hd :: tl, hd2 :: tl2 when f hd = hd2 -> test_unit (name, f, tl, tl2)
+  | _ ->
+      print_endline ("[" ^ name ^ "] : **KO**\n");
+      Some (List.hd value, List.hd result)
 
 (* 1 - Syntaxe de la logique propositionnelle *)
 
@@ -328,62 +331,65 @@ let consequenceI (li, f) = insatisfiable (And (f, Not (conjonction li)));;
 
 (* Test Unitaire *)
 
-print_endline "[*********** Test Unitaire ***********]\n";;
-test_unit ("nbc", nbc, [ f_1; f_2; f_3; f_4 ], [ 4; 5; 9; 15 ]);;
+print_endline "[*********** Test Unitaire ***********]\n"
 
-test_unit
-  ( "sp",
-    sp,
-    [ f_1; f_2; f_3; f_4 ],
-    [ [ "a"; "b" ]; [ "a"; "b" ]; [ "a"; "b"; "c" ]; [ "a"; "b"; "c"; "d" ] ] )
-;;
+let test_nbc = test_unit ("nbc", nbc, [ f_1; f_2; f_3; f_4 ], [ 4; 5; 9; 15 ])
 
-test_unit
-  ( "statisfiable",
-    satisfiable,
-    [
-      Symb "a";
-      Not (Symb "a");
-      And (Symb "a", Symb "b");
-      Or (Or (Symb "a", Symb "b"), Not (Symb "a"));
-      f_1;
-      f_2;
-      f_3;
-      f_4;
-    ],
-    [ true; true; true; true; true; true; false; true ] )
-;;
+let test_sp =
+  test_unit
+    ( "sp",
+      sp,
+      [ f_1; f_2; f_3; f_4 ],
+      [ [ "a"; "b" ]; [ "a"; "b" ]; [ "a"; "b"; "c" ]; [ "a"; "be"; "c"; "d" ] ]
+    )
 
-test_unit
-  ( "equivalent",
-    equivalent1,
-    [ (Symb "a", Not (Symb "a")); (test, test2); (test3, test4) ],
-    [ false; true; true ] )
-;;
+let test_satis =
+  test_unit
+    ( "satisfiable",
+      satisfiable,
+      [
+        Symb "a";
+        Not (Symb "a");
+        And (Symb "a", Symb "b");
+        Or (Or (Symb "a", Symb "b"), Not (Symb "a"));
+        f_1;
+        f_2;
+        f_3;
+        f_4;
+      ],
+      [ true; true; true; true; true; true; false; true ] )
 
-test_unit
-  ( "equivalent2",
-    equivalent2,
-    [ (Symb "a", Not (Symb "a")); (test, test2); (test3, test4) ],
-    [ false; true; true ] )
-;;
+let test_equ =
+  test_unit
+    ( "equivalent",
+      equivalent1,
+      [ (Symb "a", Not (Symb "a")); (test, test2); (test3, test4) ],
+      [ false; true; true ] )
 
-test_unit
-  ( "consequence2",
-    consequence2,
-    [ (testc1, testc2); (testc1, testc3); (testc4, testc5); (testc6, testc7) ],
-    [ true; false; true; true ] )
-;;
+let test_equ2 =
+  test_unit
+    ( "equivalent2",
+      equivalent2,
+      [ (Symb "a", Not (Symb "a")); (test, test2); (test3, test4) ],
+      [ false; true; true ] )
 
-test_unit
-  ("tousSP", tousSP, [ [ f_1; f_2; f_3; f_4 ] ], [ [ "a"; "b"; "c"; "d" ] ])
-;;
+let test_con2 =
+  test_unit
+    ( "consequence2",
+      consequence2,
+      [ (testc1, testc2); (testc1, testc3); (testc4, testc5); (testc6, testc7) ],
+      [ true; false; true; true ] )
 
-test_unit
-  ( "consequence",
-    consequence,
-    [ ([ testc_21; testc_22; testc_23 ], testc_24) ],
-    [ true ] )
+let test_tousSP =
+  test_unit
+    ("tousSP", tousSP, [ [ f_1; f_2; f_3; f_4 ] ], [ [ "a"; "b"; "c"; "d" ] ])
+
+let test_cons =
+  test_unit
+    ( "consequence",
+      consequence,
+      [ ([ testc_21; testc_22; testc_23 ], testc_24) ],
+      [ true ] )
 ;;
 
 print_endline "[*************************************]"
